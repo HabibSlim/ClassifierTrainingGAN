@@ -79,8 +79,6 @@ def run(config, num_batches, batch_size, model_name,
         train(net, loader, batch_size, optimizer, cross_entropy, bce_logits)
         scheduler.step()
         
-        print('Filtered samples: %d (%.1f%% of virtual dset size)' % (loader.filter_count, loader.filter_ratio()))
-        
         # Validating (on test set for now)
         print('Validation accuracy: %d %% \n' % evaluate(net, test_loader))
         loader.reset()

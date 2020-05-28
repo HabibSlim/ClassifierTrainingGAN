@@ -85,7 +85,7 @@ class FilteredLoader(DataLoader):
     def _gen_indexes(self):
         """Fetching #batch_size random indices"""
         # Sampling without replacement for faster convergence
-        offset = self.batch_size*self.n_batch
+        offset = self.batch_size*self.batch_count
         batch_idx = self._indexes[offset:offset+self.batch_size]
 
         return batch_idx
@@ -94,14 +94,14 @@ class FilteredLoader(DataLoader):
         self._update_count()
 
         # Generating/filtering until enough for a batch
-        ims, ys = new_g_pair()
 
         if self.fixed_ds and self._cached:
             batch_idx = self._gen_indexes()
 
-            ims = self._stored_im[batch_idx]
-            ys  = self._stored_y[batch_idx]
+            ims = self._stored_im[batch_idx].to('cuda')
+            ys  = self._stored_y[batch_idx].to('cuda')
         else:
+            ims, ys = new_g_pair()
             with torch.no_grad():
                 while ims.shape[0] < self.batch_size:
                     # Generating batch and normalizing
@@ -146,6 +146,10 @@ class FilteredLoader(DataLoader):
         self.filter_count = 0
         if self.fixed_ds:
             self._shuffle_samples()
+
+        if not self._cached:
+            print('[FilterLoader] Filtered samples: %d (%.1f%% of virtual dset size)'
+                % (self.filter_count, self.filter_ratio()))
 
     def filter_ratio(self):
         ratio = self.filter_count / self.train_length()
