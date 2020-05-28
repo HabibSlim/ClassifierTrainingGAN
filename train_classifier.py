@@ -224,7 +224,7 @@ def main():
 
     # Toggles:
     fixed_dset  = args['fixed_dset']
-    transform   = args['transform'][0]
+    transform   = args['transform']
 
     # Updating config object
     utils.update_config(config)
