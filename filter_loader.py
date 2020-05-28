@@ -84,10 +84,9 @@ class FilteredLoader(DataLoader):
 
     def _gen_indexes(self):
         """Fetching #batch_size random indices"""
-        batch_idx = self._indexes[:self.batch_size]
-
         # Sampling without replacement for faster convergence
-        self._indexes = self._indexes[self.batch_size:]
+        offset = self.batch_size*self.n_batch
+        batch_idx = self._indexes[offset:offset+self.batch_size]
 
         return batch_idx
 
