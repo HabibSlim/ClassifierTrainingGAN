@@ -6,7 +6,6 @@ import torch
 from torch.utils.data import DataLoader
 
 import torchvision.transforms as transforms
-import batch_transforms as bt
 
 
 # Utility functions
@@ -73,11 +72,12 @@ class FilteredLoader(DataLoader):
 
         # Setting up training data transformation
         if transform:
-            self.T = transforms.Compose([
-                bt.RandomHorizontalFlip(),
-                bt.RandomCrop(32, padding=4),
-                bt.ToTensor(),
-                bt.Normalize(*norm_vals),
+            T = transforms.Compose([
+                transforms.ToPILImage(),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomCrop(32, padding=4),
+                transforms.ToTensor(),
+                transforms.Normalize(*norm_vals),
             ])
         else:
             self.T = None
@@ -121,7 +121,9 @@ class FilteredLoader(DataLoader):
                     # Applying transformations
                     inputs, labels = batch[0], batch[1]
                     if self.T is not None:
-                        inputs = self.T(inputs)
+                        for i,im in enumerate(inputs):
+                            im_c = (im * 0.5 + 0.5).clamp_(0, 1)
+                            inputs[i] = self.T(im_c)
 
                     # Applying filter mask
                     mask = self.cls_fn(inputs, labels, self.thr)
