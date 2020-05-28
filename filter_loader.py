@@ -85,7 +85,7 @@ class FilteredLoader(DataLoader):
     def _gen_indexes(self):
         """Fetching #batch_size random indices"""
         # Sampling without replacement for faster convergence
-        offset = self.batch_size*self.batch_count
+        offset = self.batch_size*(self.batch_count - 1)
         batch_idx = self._indexes[offset:offset+self.batch_size]
 
         return batch_idx
@@ -98,8 +98,8 @@ class FilteredLoader(DataLoader):
         if self.fixed_ds and self._cached:
             batch_idx = self._gen_indexes()
 
-            ims = self._stored_im[batch_idx].to('cuda')
-            ys  = self._stored_y[batch_idx].to('cuda')
+            ims = self._stored_im[batch_idx]
+            ys  = self._stored_y[batch_idx]
         else:
             ims, ys = new_g_pair()
             with torch.no_grad():
