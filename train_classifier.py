@@ -200,14 +200,14 @@ def main():
                         default=[10],
                         help='Number of epochs to train the classifier for '
                              '(default: %(default)s)')
-    parser.add_argument('--fixed_dset', metavar='epochs', type=bool,
-                        nargs=1,
-                        default=[False],
+    parser.add_argument('--fixed_dset',
+                        action='store_true',
                         help='Use a fixed generated dataset for training '
                              '(of size: batch_size x num_batches x num_classes, '
-                             'default: %(default)s)')
+                             'default: False)')
     args = vars(parser.parse_args())
 
+    # Values:
     num_batches = args['num_batches'][0]
     batch_size  = args['batch_size'][0]
     model_name  = args['model'][0]
@@ -216,7 +216,9 @@ def main():
     threshold   = args['threshold'][0]
     num_workers = args['num_workers'][0]
     epochs      = args['epochs'][0]
-    fixed_dset  = args['fixed_dset'][0]
+
+    # Toggles:
+    fixed_dset  = args['fixed_dset']
 
     # Updating config object
     utils.update_config(config)
