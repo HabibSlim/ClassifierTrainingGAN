@@ -26,9 +26,6 @@ class ToTensor:
 class Normalize:
     """Applies the :class:`~torchvision.transforms.Normalize` transform to a batch of images.
 
-    .. note::
-        This transform acts out of place by default, i.e., it does not mutate the input tensor.
-
     Args:
         mean (sequence): Sequence of means for each channel.
         std (sequence): Sequence of standard deviations for each channel.
@@ -38,7 +35,7 @@ class Normalize:
 
     """
 
-    def __init__(self, mean, std, inplace=False, dtype=torch.float, device='cpu'):
+    def __init__(self, mean, std, inplace=True, dtype=torch.float, device='cpu'):
         self.mean = torch.as_tensor(mean, dtype=dtype, device=device)[None, :, None, None]
         self.std = torch.as_tensor(std, dtype=dtype, device=device)[None, :, None, None]
         self.inplace = inplace
@@ -62,16 +59,12 @@ class Normalize:
 class RandomHorizontalFlip:
     """Applies the :class:`~torchvision.transforms.RandomHorizontalFlip` transform to a batch of images.
 
-    .. note::
-        This transform acts out of place by default, i.e., it does not mutate the input tensor.
-
     Args:
         p (float): probability of an image being flipped.
         inplace(bool,optional): Bool to make this operation in-place.
-
     """
 
-    def __init__(self, p=0.5, inplace=False):
+    def __init__(self, p=0.5, inplace=True):
         self.p = p
         self.inplace = inplace
 

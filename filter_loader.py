@@ -118,10 +118,9 @@ class FilteredLoader(DataLoader):
                     batch = self.gen_fn()
 
                     # Applying transformations
-                    if self.T is not None:
-                        batch = self.T(batch)
-
                     inputs, labels = batch[0], batch[1]
+                    if self.T is not None:
+                        inputs = self.T(inputs)
 
                     # Applying filter mask
                     mask = self.cls_fn(inputs, labels, self.thr)
