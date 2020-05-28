@@ -72,7 +72,7 @@ class FilteredLoader(DataLoader):
 
         # Setting up training data transformation
         if transform:
-            T = transforms.Compose([
+            self.T = transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(32, padding=4),
