@@ -11,4 +11,4 @@ CUDA_VISIBLE_DEVICES=0 python train_classifier.py \
 --threshold 0.9 \
 --num_workers 1 \
 --epochs 132 \
---fixed_dset
+--fixed_dset --transform

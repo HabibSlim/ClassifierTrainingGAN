@@ -7,7 +7,6 @@ import argparse
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import torchvision.transforms as transforms
 import numpy as np
@@ -22,18 +21,16 @@ from filter_loader import FilteredLoader
 
 
 # Default normalization for CIFAR-10 samples
-T = ([0.5, 0.5, 0.5],  # mean
-     [0.5, 0.5, 0.5])  # std
-
-# T = ([0.4914, 0.4822, 0.4465],  # mean
-#      [0.2470, 0.2435, 0.2616])  # std
+norm_vals = ([0.5, 0.5, 0.5],  # mean
+             [0.5, 0.5, 0.5])  # std
 
 # Debugging generated batches
 CHECK_BATCH = True
 
-
-def run(config, num_batches, batch_size, model_name,
-        class_model_name, ofile, thr, num_workers, epochs, fixed_dset):
+def run(config, num_batches, batch_size,
+        model_name, class_model_name, ofile,
+        thr, num_workers, epochs,
+        fixed_dset, transform):
 
     # Instanciating generator
     config['G_batch_size'] = batch_size
@@ -51,10 +48,11 @@ def run(config, num_batches, batch_size, model_name,
                             num_classes,
                             num_batches,
                             thr,
-                            T,
                             batch_size,
                             num_workers,
-                            fixed_dset)
+                            fixed_dset,
+                            transform,
+                            norm_vals)
 
     print('Training using %d generated images per epoch'
           % loader.train_length())
@@ -64,23 +62,27 @@ def run(config, num_batches, batch_size, model_name,
 
     # Initializing loss functions, optimizer, learning rate scheduler
     cross_entropy = nn.CrossEntropyLoss()
-    bce_logits    = nn.BCEWithLogitsLoss(pos_weight=18*torch.ones([num_classes]).to('cuda'))
     optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[epochs // 2, (3 * epochs) // 4])
 
     # Evaluating the model on the test set
-    test_loader = utils.make_test_loader(config['dataset'], batch_size, transforms.Normalize(*T))
+    test_loader = utils.make_test_loader(config['dataset'],
+                                         batch_size,
+                                         transforms.Normalize(*norm_vals))
 
     # Training the model
     t1 = utils.ctime()
+    best_acc = 0.0
     for epoch in range(epochs):
         print('Epoch: %3d' % (epoch+1), end="  ")
 
-        train(net, loader, batch_size, optimizer, cross_entropy, bce_logits)
+        train(net, loader, batch_size, optimizer, cross_entropy)
         scheduler.step()
-        
-        # Validating (on test set for now)
-        print('Validation accuracy: %d %% \n' % evaluate(net, test_loader))
+
+        acc = evaluate(net, test_loader)
+        best_acc = max(acc, best_acc)
+        print('Val acc: %4.2f %% \n' % evaluate(net, test_loader),
+              ' | Best acc: %4.2f' % best_acc)
         loader.reset()
 
     tt = utils.ctime() - t1
@@ -93,7 +95,7 @@ def run(config, num_batches, batch_size, model_name,
     torch.save(net.state_dict(), output)
 
 
-def train(net, loader, batch_size, optimizer, loss_fn_a, loss_fn_b, alpha=0.9, num_classes=10):
+def train(net, loader, batch_size, optimizer, loss_fn):
     """Training a classifier for one epoch"""
     global CHECK_BATCH
 
@@ -103,20 +105,20 @@ def train(net, loader, batch_size, optimizer, loss_fn_a, loss_fn_b, alpha=0.9, n
     net.train()
 
     with tqdm(total=batches_length) as progress_bar:
+        correct = 0
+        total = 0
+
         for data in loader:
             inputs, labels = data
 
             optimizer.zero_grad()
             outputs = net(inputs)
+            _, predicted = torch.max(outputs.data, 1)
 
-            if alpha <= 0:
-                loss = loss_fn_a(outputs, labels)
-            elif alpha >= 1:
-                loss = loss_fn_b(outputs, F.one_hot(labels, num_classes).type_as(outputs))
-            else:
-                loss = (1-alpha)*loss_fn_a(outputs, labels) + \
-                alpha*loss_fn_b(outputs, F.one_hot(labels, num_classes).type_as(outputs))
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
 
+            loss = loss_fn(outputs, labels)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
@@ -130,8 +132,9 @@ def train(net, loader, batch_size, optimizer, loss_fn_a, loss_fn_b, alpha=0.9, n
 
             progress_bar.update(1)
 
-    # Computing average loss
-    print('Train loss: %5.4f' % ((running_loss * batch_size) / train_length))
+    # Computing train loss/accuracy
+    print('Train loss: %5.4f' % ((running_loss * batch_size) / train_length),
+          'Train acc: %4.2f' % (100 * correct / total))
 
 
 def evaluate(net, test_loader):
@@ -152,7 +155,7 @@ def evaluate(net, test_loader):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    return (100 * correct / total)
+    return 100 * correct / total
 
 
 def main():
@@ -203,6 +206,10 @@ def main():
                         help='Use a fixed generated dataset for training '
                              '(of size: batch_size x num_batches x num_classes, '
                              'default: False)')
+    parser.add_argument('--transform',
+                        action='store_true',
+                        help='Apply image transformations to generated images '
+                             '(default: False)')
     args = vars(parser.parse_args())
 
     # Values:
@@ -217,6 +224,7 @@ def main():
 
     # Toggles:
     fixed_dset  = args['fixed_dset']
+    transform   = args['transform'][0]
 
     # Updating config object
     utils.update_config(config)
@@ -230,7 +238,8 @@ def main():
         threshold,
         num_workers,
         epochs,
-        fixed_dset)
+        fixed_dset,
+        transform)
 
 
 if __name__ == '__main__':
