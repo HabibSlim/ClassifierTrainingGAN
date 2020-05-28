@@ -200,7 +200,7 @@ def main():
                         default=[10],
                         help='Number of epochs to train the classifier for '
                              '(default: %(default)s)')
-    parser.add_argument('--fixed_dset', metavar='epochs', type=int,
+    parser.add_argument('--fixed_dset', metavar='epochs', type=bool,
                         nargs=1,
                         default=[False],
                         help='Use a fixed generated dataset for training '
