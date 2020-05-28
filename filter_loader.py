@@ -123,7 +123,8 @@ class FilteredLoader(DataLoader):
                     if self.T is not None:
                         for i,im in enumerate(inputs):
                             im_c = (im * 0.5 + 0.5).clamp_(0, 1)
-                            inputs[i] = self.T(im_c)
+                            inputs[i] = self.T(im_c.cpu())
+                            inputs[i] = inputs[i].to('cuda')
 
                     # Applying filter mask
                     mask = self.cls_fn(inputs, labels, self.thr)
