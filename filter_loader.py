@@ -76,7 +76,8 @@ class FilteredLoader(DataLoader):
             self.T = transforms.Compose([
                 bt.RandomHorizontalFlip(),
                 bt.RandomCrop(32, padding=4),
-                bt.Normalize(*norm_vals)
+                bt.ToTensor(),
+                bt.Normalize(*norm_vals),
             ])
         else:
             self.T = None
