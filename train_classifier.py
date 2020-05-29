@@ -86,9 +86,9 @@ def run(config, num_batches, batch_size,
 
         acc = evaluate(net, test_loader)
         best_acc = max(acc, best_acc)
+        loader.reset()
         print('Val acc: %4.2f %% ' % evaluate(net, test_loader),
               ' | Best acc: %4.2f %%\n' % best_acc)
-        loader.reset()
 
     tt = utils.ctime() - t1
     print('Finished training, total time: %4.2fs' % tt)
