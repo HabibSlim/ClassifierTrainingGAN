@@ -20,10 +20,12 @@ class FilteredLoader(DataLoader):
     """General FilteredLoader"""
 
     def __init__(self,
-                 gen_fn, cls_fn,
-                 n_class, n_batch,
-                 threshold,
+                 gen_fn,
+                 cls_fn,
+                 n_class,
+                 n_batch,
                  batch_size,
+                 threshold,
                  num_workers,
                  fixed_ds,
                  transform,
@@ -104,8 +106,7 @@ class FilteredLoader(DataLoader):
     def __next__(self):
         self._update_count()
 
-        # Generating/filtering until enough for a batch
-
+        # Using cached generated dataset
         if self.fixed_ds and self._cached:
             batch_idx = self._gen_indexes()
 
@@ -114,6 +115,7 @@ class FilteredLoader(DataLoader):
         else:
             ims, ys = new_g_pair()
             with torch.no_grad():
+                # Generating/filtering until enough for a batch
                 while ims.shape[0] < self.batch_size:
                     # Generating batch and normalizing
                     batch = self.gen_fn()
@@ -122,14 +124,16 @@ class FilteredLoader(DataLoader):
                     inputs, labels = batch[0], batch[1]
                     if self.T is not None:
                         for i,im in enumerate(inputs):
+                            # Denormalizing before applying transforms
                             im_c = (im * 0.5 + 0.5).clamp_(0, 1)
                             inputs[i] = self.T(im_c.cpu())
                             inputs[i] = inputs[i].to('cuda')
 
                     # Applying filter mask
-                    mask = self.cls_fn(inputs, labels, self.thr)
-                    inputs = inputs[mask]
-                    labels = labels[mask]
+                    if self.cls_fn is not None:
+                        mask = self.cls_fn(inputs, labels, self.thr)
+                        inputs = inputs[mask]
+                        labels = labels[mask]
 
                     # Adding images/labels to the batch
                     ims = torch.cat((ims, inputs))
@@ -153,15 +157,17 @@ class FilteredLoader(DataLoader):
 
     def reset(self):
         """Resetting loader between each epoch"""
+        if self.filter_count > 0:
+            print('[FilterLoader] Filtered samples: %d (%.1f%% of virtual dset size)'
+                  % (self.filter_count, self.filter_ratio()))
+        elif not self.fixed_ds:
+            print('[FilteredLoader] No samples have been filtered!')
+
         self.batch_count = 0
         self.filter_count = 0
 
         if self.fixed_ds:
             self._shuffle_samples()
-
-        if self.filter_count > 0:
-            print('[FilterLoader] Filtered samples: %d (%.1f%% of virtual dset size)'
-                  % (self.filter_count, self.filter_ratio()))
 
     def filter_ratio(self):
         ratio = self.filter_count / self.train_length()

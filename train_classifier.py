@@ -29,26 +29,31 @@ CHECK_BATCH = True
 
 def run(config, num_batches, batch_size,
         model_name, class_model_name, ofile,
-        thr, num_workers, epochs,
-        fixed_dset, transform):
+        threshold, num_workers, epochs,
+        fixed_dset, transform, filter_samples):
 
     # Instanciating generator
     config['G_batch_size'] = batch_size
     generator = GeneratorWrapper(config, model_name)
+    generator_fn = generator.gen_batch
 
     # Instanciating filtering classifier
-    print('Using ResNet20 weights: %s.pth' % class_model_name)
-    filter_net = Classifier('resnet20', config['n_classes'])
-    filter_net.load(class_model_name)
+    if filter_samples:
+        print('Using ResNet20 weights: %s.pth' % class_model_name)
+        filter_net = Classifier('resnet20', config['n_classes'])
+        filter_net.load(class_model_name)
+        filter_fn = filter_net.filter
+    else:
+        filter_fn = None
 
     # Creating a filtered loader using the classifier
     num_classes = config['n_classes']
-    loader = FilteredLoader(generator.gen_batch,
-                            filter_net.filter,
+    loader = FilteredLoader(generator_fn,
+                            filter_fn,
                             num_classes,
                             num_batches,
-                            thr,
                             batch_size,
+                            threshold,
                             num_workers,
                             fixed_dset,
                             transform,
@@ -63,7 +68,7 @@ def run(config, num_batches, batch_size,
     # Initializing loss functions, optimizer, learning rate scheduler
     cross_entropy = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[epochs // 2, (3 * epochs) // 4])
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 150])
 
     # Evaluating the model on the test set
     test_loader = utils.make_test_loader(config['dataset'],
@@ -81,13 +86,13 @@ def run(config, num_batches, batch_size,
 
         acc = evaluate(net, test_loader)
         best_acc = max(acc, best_acc)
-        print('Val acc: %4.2f %% \n' % evaluate(net, test_loader),
-              ' | Best acc: %4.2f' % best_acc)
+        print('Val acc: %4.2f %% ' % evaluate(net, test_loader),
+              ' | Best acc: %4.2f %%\n' % best_acc)
         loader.reset()
 
     tt = utils.ctime() - t1
     print('Finished training, total time: %4.2fs' % tt)
-    print('Test accuracy: %d %%' % evaluate(net, test_loader))
+    print('Best accuracy achieved: %4.5f %%' % best_acc)
 
     # Saving output model
     output = './output/%s.pth' % ofile
@@ -210,6 +215,10 @@ def main():
                         action='store_true',
                         help='Apply image transformations to generated images '
                              '(default: False)')
+    parser.add_argument('--filter_samples',
+                        action='store_true',
+                        help='Enable classifier-filtering of generated images '
+                             '(default: False)')
     args = vars(parser.parse_args())
 
     # Values:
@@ -223,8 +232,9 @@ def main():
     epochs      = args['epochs'][0]
 
     # Toggles:
-    fixed_dset  = args['fixed_dset']
-    transform   = args['transform']
+    fixed_dset     = args['fixed_dset']
+    transform      = args['transform']
+    filter_samples = args['filter_samples']
 
     # Updating config object
     utils.update_config(config)
@@ -239,7 +249,8 @@ def main():
         num_workers,
         epochs,
         fixed_dset,
-        transform)
+        transform,
+        filter_samples)
 
 
 if __name__ == '__main__':
