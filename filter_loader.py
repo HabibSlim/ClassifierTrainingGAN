@@ -82,7 +82,7 @@ class FilteredLoader(DataLoader):
                 transforms.Normalize(*norm_vals),
             ])
         else:
-            self.T = transforms.Normalize(*norm_vals)
+            self.T = None
 
     def _update_count(self):
         """Updating batches per class count"""
