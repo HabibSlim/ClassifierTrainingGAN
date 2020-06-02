@@ -180,7 +180,7 @@ class Distribution(torch.Tensor):
                 x = truncnorm.rvs(-self.thr, self.thr,
                                   size=list(self.shape))
                 z_ = torch.from_numpy(x)
-                self.data = torch.as_tensor(z_)
+                self.data = torch.as_tensor(z_, dtype=torch.float32)
         elif self.dist_type == 'categorical':
             self.random_(0, self.num_categories)
 
