@@ -11,7 +11,7 @@ import utils
 import params
 
 
-def run(config, n_samples, model_name, ofile):
+def run(config, n_samples, model_name, ofile, torch_format):
     # Initializing the generator from configuration
     G = utils.initialize(config, model_name)
 
@@ -31,8 +31,18 @@ def run(config, n_samples, model_name, ofile):
     for i in trange(int(np.ceil(n_samples / float(G_batch_size)))):
         with torch.no_grad():
             images, labels = sample()
-        x += [np.uint8(255 * (images.cpu().numpy() + 1) / 2.)]
-        y += [labels.cpu().numpy()]
+
+        # Fetching to CPU
+        images = images.cpu().numpy()
+        labels = labels.cpu().numpy()
+
+        # Normalizing for display (optionally)
+        if (torch_format):
+            x += [images]
+        else:
+            x += [np.uint8(255 * (images + 1) / 2.)]
+        y += [labels]
+
     x = np.concatenate(x, 0)[:n_samples]
     y = np.concatenate(y, 0)[:n_samples]
 
@@ -61,16 +71,24 @@ def main():
     parser.add_argument('--model', metavar='model', type=str,
                         nargs=1,
                         help='Model name to use (with weights in ./weights/model_name')
+    parser.add_argument('--torch_format',
+                        action='store_true',
+                        help='Save sample archive using the torch format for samples'
+                             '(default: False)')
     args = vars(parser.parse_args())
 
-    # Updating config object
+    # Values:
     num_samples = args['num_samples'][0]
-    model_name = args['model'][0]
-    ofile = args['ofile'][0]
+    model_name  = args['model'][0]
+    ofile       = args['ofile'][0]
 
+    # Toggles:
+    torch_format = args['torch_format']
+
+    # Updating config object
     utils.update_config(config)
 
-    run(config, num_samples, model_name, ofile)
+    run(config, num_samples, model_name, ofile, torch_format)
 
 
 if __name__ == '__main__':
