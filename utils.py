@@ -13,6 +13,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as tforms
 import BigGAN
 
+from scipy.stats import truncnorm
 
 # Convenience dicts
 dset_dict = {'I32':  dset.ImageNet,
