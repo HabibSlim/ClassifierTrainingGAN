@@ -1,7 +1,7 @@
 #!/bin/bash
-export PATH="/home/mrim/quenot/anaconda3/bin:$PATH"
-#export PATH="/srv/storage/irim@storage1.lille.grid5000.fr/anaconda3/bin:$PATH"
-echo "Running experiment D (Inf DSET)..."
+#export PATH="/home/mrim/quenot/anaconda3/bin:$PATH"
+export PATH="/srv/storage/irim@storage1.lille.grid5000.fr/anaconda3/bin:$PATH"
+echo "Running experiment I (Inf DSET)..."
 CUDA_VISIBLE_DEVICES=0 python train_classifier.py \
 --num_batches 40 \
 --batch_size 125 \
@@ -10,4 +10,4 @@ CUDA_VISIBLE_DEVICES=0 python train_classifier.py \
 --threshold 0.9 \
 --num_workers 1 \
 --epochs 180 \
---filter_samples
+--truncate 1.5

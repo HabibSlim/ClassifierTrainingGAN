@@ -5,7 +5,7 @@ import utils
 
 
 class GeneratorWrapper:
-    def __init__(self, config, model_name):
+    def __init__(self, config, model_name, thr=None):
         # Initializing generator from configuration
         self.G = utils.initialize(config, model_name)
 
@@ -18,7 +18,8 @@ class GeneratorWrapper:
                                              n_classes,
                                              device='cuda',
                                              fp16=config['G_fp16'],
-                                             z_var=config['z_var'])
+                                             z_var=config['z_var'],
+                                             thr=thr)
 
         # Preparing fixed y tensors
         self.y_fixed = {y: utils.make_y(G_batch_size, y) for y in range(n_classes)}

@@ -161,29 +161,27 @@ def sample_1hot(batch_size, num_classes, device='cuda'):
                          device=device, dtype=torch.int64, requires_grad=False)
 
 
-# A highly simplified convenience class for sampling from distributions
-# One could also use PyTorch's inbuilt distributions package.
-# Note that this class requires initialization to proceed as
-# x = Distribution(torch.randn(size))
-# x.init_distribution(dist_type, **dist_kwargs)
-# x = x.to(device,dtype)
-# This is partially based on https://discuss.pytorch.org/t/subclassing-torch-tensor/23754/2
 class Distribution(torch.Tensor):
     # Init the params of the distribution
     def init_distribution(self, dist_type, **kwargs):
         self.dist_type = dist_type
         self.dist_kwargs = kwargs
         if self.dist_type == 'normal':
-            self.mean, self.var = kwargs['mean'], kwargs['var']
+            self.mean, self.var, self.thr = kwargs['mean'], kwargs['var'], kwargs['thr']
         elif self.dist_type == 'categorical':
             self.num_categories = kwargs['num_categories']
 
     def sample_(self):
         if self.dist_type == 'normal':
-            self.normal_(self.mean, self.var)
+            if self.thr is None:
+                self.normal_(self.mean, self.var)
+            else:
+                x = truncnorm.rvs(-self.thr, self.thr,
+                                  size=list(self.shape))
+                z_ = torch.from_numpy(x)
+                self.data = torch.as_tensor(z_)
         elif self.dist_type == 'categorical':
             self.random_(0, self.num_categories)
-            # return self.variable
 
     # Silly hack: overwrite the to() method to wrap the new object
     # in a distribution as well
@@ -196,25 +194,21 @@ class Distribution(torch.Tensor):
 
 # Prepare random z, y
 def prepare_z_y(G_batch_size, dim_z, nclasses, device='cuda',
-                fp16=False, z_var=1.0):
-    z_ = Distribution(torch.randn(G_batch_size, dim_z, requires_grad=False))
-    z_.init_distribution('normal', mean=0, var=z_var)
-    z_ = z_.to(device, torch.float16 if fp16 else torch.float32)
-
-    if fp16:
-        z_ = z_.half()
+                fp16=False, z_var=1.0, thr=None):
+    z_ = prepare_z(G_batch_size, dim_z, device, fp16, z_var, thr)
 
     y_ = Distribution(torch.zeros(G_batch_size, requires_grad=False))
     y_.init_distribution('categorical', num_categories=nclasses)
     y_ = y_.to(device, torch.int64)
+
     return z_, y_
 
 
 # Prepare random z
 def prepare_z(G_batch_size, dim_z, device='cuda',
-              fp16=False, z_var=1.0):
+                fp16=False, z_var=1.0, thr=None):
     z_ = Distribution(torch.randn(G_batch_size, dim_z, requires_grad=False))
-    z_.init_distribution('normal', mean=0, var=z_var)
+    z_.init_distribution('normal', thr=thr, mean=0, var=z_var)
     z_ = z_.to(device, torch.float16 if fp16 else torch.float32)
 
     if fp16:
@@ -222,7 +216,7 @@ def prepare_z(G_batch_size, dim_z, device='cuda',
     return z_
 
 
-# Create a fixed y tensor
+# Initialize a fixed y tensor
 def make_y(G_batch_size, y_class, device='cuda'):
     y_ = torch.full((G_batch_size,), fill_value=y_class)
     y_ = y_.to(device, torch.int64)

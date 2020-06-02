@@ -30,11 +30,11 @@ CHECK_BATCH = True
 def run(config, num_batches, batch_size,
         model_name, class_model_name, ofile,
         threshold, num_workers, epochs,
-        fixed_dset, transform, filter_samples):
+        fixed_dset, transform, filter_samples, trunc_norm):
 
     # Instanciating generator
     config['G_batch_size'] = batch_size
-    generator = GeneratorWrapper(config, model_name)
+    generator = GeneratorWrapper(config, model_name, trunc_norm)
     generator_fn = generator.gen_batch
 
     # Instanciating filtering classifier
@@ -196,6 +196,11 @@ def main():
                         default=[0.9],
                         help='Threshold probability for filtering '
                              '(default: %(default)s)')
+    parser.add_argument('--truncate', metavar='truncate', type=float,
+                        nargs=1,
+                        default=[None],
+                        help='Sample latent z from a truncated normal '
+                             '(default: no truncation).')
     parser.add_argument('--num_workers', metavar='num_workers', type=float,
                         nargs=1,
                         default=[1],
@@ -230,6 +235,7 @@ def main():
     threshold   = args['threshold'][0]
     num_workers = args['num_workers'][0]
     epochs      = args['epochs'][0]
+    trunc_norm  = args['truncate'][0]
 
     # Toggles:
     fixed_dset     = args['fixed_dset']
@@ -250,7 +256,8 @@ def main():
         epochs,
         fixed_dset,
         transform,
-        filter_samples)
+        filter_samples,
+        trunc_norm)
 
 
 if __name__ == '__main__':

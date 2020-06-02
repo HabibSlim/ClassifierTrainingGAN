@@ -1,7 +1,7 @@
 #!/bin/bash
 #export PATH="/home/mrim/quenot/anaconda3/bin:$PATH"
 export PATH="/srv/storage/irim@storage1.lille.grid5000.fr/anaconda3/bin:$PATH"
-echo "Running experiment J (Fixed DSET)..."
+echo "Running experiment D (Fixed DSET)..."
 CUDA_VISIBLE_DEVICES=0 python train_classifier.py \
 --num_batches 40 \
 --batch_size 125 \
@@ -10,4 +10,5 @@ CUDA_VISIBLE_DEVICES=0 python train_classifier.py \
 --threshold 0.9 \
 --num_workers 1 \
 --epochs 180 \
---fixed_dset
+--fixed_dset \
+--filter_samples

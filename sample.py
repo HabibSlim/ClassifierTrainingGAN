@@ -11,7 +11,8 @@ import utils
 import params
 
 
-def run(config, n_samples, model_name, ofile, torch_format):
+def run(config, n_samples, model_name,
+        ofile, torch_format, trunc_norm):
     # Initializing the generator from configuration
     G = utils.initialize(config, model_name)
 
@@ -19,7 +20,8 @@ def run(config, n_samples, model_name, ofile, torch_format):
     G_batch_size = max(config['G_batch_size'], config['batch_size'])
     z_, y_ = utils.prepare_z_y(G_batch_size, G.dim_z, config['n_classes'],
                                device='cuda', fp16=config['G_fp16'],
-                               z_var=config['z_var'])
+                               z_var=config['z_var'],
+                               thr=trunc_norm)
 
     # Sample function
     sample = functools.partial(utils.sample, G=G, z_=z_, y_=y_)
@@ -37,7 +39,7 @@ def run(config, n_samples, model_name, ofile, torch_format):
         labels = labels.cpu().numpy()
 
         # Normalizing for display (optionally)
-        if (torch_format):
+        if torch_format:
             x += [images]
         else:
             x += [np.uint8(255 * (images + 1) / 2.)]
@@ -68,6 +70,11 @@ def main():
                         default=["samples"],
                         help='Output file name '
                              '(default: %(default)s)')
+    parser.add_argument('--truncate', metavar='truncate', type=float,
+                        nargs=1,
+                        default=[None],
+                        help='Sample latent z from a truncated normal '
+                             '(default: no truncation).')
     parser.add_argument('--model', metavar='model', type=str,
                         nargs=1,
                         help='Model name to use (with weights in ./weights/model_name')
@@ -81,6 +88,7 @@ def main():
     num_samples = args['num_samples'][0]
     model_name  = args['model'][0]
     ofile       = args['ofile'][0]
+    trunc_norm  = args['truncate'][0]
 
     # Toggles:
     torch_format = args['torch_format']
@@ -88,7 +96,7 @@ def main():
     # Updating config object
     utils.update_config(config)
 
-    run(config, num_samples, model_name, ofile, torch_format)
+    run(config, num_samples, model_name, ofile, torch_format, trunc_norm)
 
 
 if __name__ == '__main__':
