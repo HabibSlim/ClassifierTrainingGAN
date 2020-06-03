@@ -11,8 +11,8 @@ import utils
 import params
 
 
-def run(config, n_samples, model_name,
-        ofile, torch_format, trunc_norm):
+def run(config, n_samples,    model_name,
+        ofile,  torch_format, trunc_norm):
     # Initializing the generator from configuration
     G = utils.initialize(config, model_name)
 

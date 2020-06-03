@@ -27,14 +27,14 @@ norm_vals = ([0.5, 0.5, 0.5],  # mean
 # Debugging generated batches
 CHECK_BATCH = True
 
-def run(config, num_batches, batch_size,
+def run(config,     num_batches,      batch_size,
         model_name, class_model_name, ofile,
-        threshold, num_workers, epochs,
-        fixed_dset, transform, filter_samples, trunc_norm):
+        threshold,  num_workers,      epochs,    multi_gans,
+        trunc_norm, fixed_dset,       transform, filter_samples):
 
     # Instanciating generator
     config['G_batch_size'] = batch_size
-    generator = GeneratorWrapper(config, model_name, trunc_norm)
+    generator = GeneratorWrapper(config, model_name, trunc_norm, multi_gans)
     generator_fn = generator.gen_batch
 
     # Instanciating filtering classifier
@@ -211,6 +211,11 @@ def main():
                         default=[10],
                         help='Number of epochs to train the classifier for '
                              '(default: %(default)s)')
+    parser.add_argument('--multi_gans', metavar='multi_gans', type=int,
+                        nargs=1,
+                        default=[None],
+                        help='Sample using multiple GANs '
+                             '(default: %(default)s)')
     parser.add_argument('--fixed_dset',
                         action='store_true',
                         help='Use a fixed generated dataset for training '
@@ -235,6 +240,7 @@ def main():
     threshold   = args['threshold'][0]
     num_workers = args['num_workers'][0]
     epochs      = args['epochs'][0]
+    multi_gans  = args['multi_gans'][0]
     trunc_norm  = args['truncate'][0]
 
     # Toggles:
@@ -254,10 +260,11 @@ def main():
         threshold,
         num_workers,
         epochs,
+        multi_gans,
+        trunc_norm,
         fixed_dset,
         transform,
-        filter_samples,
-        trunc_norm)
+        filter_samples)
 
 
 if __name__ == '__main__':
