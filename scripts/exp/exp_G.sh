@@ -1,7 +1,7 @@
 #!/bin/bash
 #export PATH="/home/mrim/quenot/anaconda3/bin:$PATH"
 export PATH="/srv/storage/irim@storage1.lille.grid5000.fr/anaconda3/bin:$PATH"
-echo "Running experiment N (Fixed DSET)..."
+echo "Running experiment G (Fixed DSET)..."
 CUDA_VISIBLE_DEVICES=0 python train_classifier.py \
 --num_batches 40 \
 --batch_size 125 \

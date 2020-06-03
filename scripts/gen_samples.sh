@@ -5,4 +5,4 @@ CUDA_VISIBLE_DEVICES=0 python sample.py \
 --model 55k_hier_z \
 --ofile 55k_samples \
 --num_samples 1000 \
---truncate 0.5
+--truncate 1.5
