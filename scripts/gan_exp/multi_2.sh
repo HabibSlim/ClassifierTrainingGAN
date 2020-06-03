@@ -5,7 +5,7 @@ export PATH="/home/mrim/quenot/anaconda3/bin:$PATH"
 #export PATH="/srv/storage/irim@storage1.lille.grid5000.fr/anaconda3/bin:$PATH"
 
 echo "Running MultiGANs training, n=" $N_GANS "..."
-CUDA_VISIBLE_DEVICES=0 python test.py \
+CUDA_VISIBLE_DEVICES=0 python train_classifier.py \
 --num_batches 40 \
 --batch_size 125 \
 --model gan_multi \
