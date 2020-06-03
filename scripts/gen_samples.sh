@@ -4,6 +4,6 @@ echo "Generating samples..."
 CUDA_VISIBLE_DEVICES=0 python sample.py \
 --model 55k_hier_z \
 --ofile 55k_samples \
---num_samples 10000 \
+--num_samples 5000 \
 --truncate 1.5 \
 --torch_format
