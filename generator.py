@@ -17,9 +17,9 @@ class GeneratorWrapper:
             self.G = utils.initialize(config, model_name)
         else:
             # Assuming that weight files follows the naming convention:
-            # model_name_k, where k is in [1,multi_gans]
+            # model_name_k, where k is in [0,multi_gans-1]
             self.G = [utils.initialize(config, model_name + "_%d" % k)
-                      for k in range(1, multi_gans+1)]
+                      for k in range(multi_gans)]
         self.multi_gans = multi_gans
 
         # Preparing sampling functions
