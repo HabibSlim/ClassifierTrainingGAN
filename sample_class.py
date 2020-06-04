@@ -12,31 +12,61 @@ import utils
 import params
 
 
-def run(config, n_samples, model_name, ofile, y_class):
+def run(config, n_samples, model_name,
+        ofile,  y_class,   torch_format):
+
+    # Adjusting batch size for convenience
+    if n_samples % G_batch_size != 0:
+        print('Defaulting to a batch size of %d.' % 50)
+        G_batch_size = 50
+
     # Initializing generator from configuration
     G = utils.initialize(config, model_name)
-
-    # Update batch size setting used for G
-    G_batch_size = max(config['G_batch_size'], config['batch_size'])
     z_ = utils.prepare_z(G_batch_size, G.dim_z,
                          device='cuda', fp16=config['G_fp16'],
                          z_var=config['z_var'])
 
-    # Preparing fixed y tensor
-    y_ = utils.make_y(G_batch_size, y_class)
+    n_classes = config['n_classes']
 
-    # Sample function
-    sample = functools.partial(utils.sample_cond, G=G, z_=z_, y_=y_)
+    if y_class is None:
+        # Preparing fixed y tensors
+        y_ = utils.make_y(G_batch_size, y_class)
 
-    # Sampling a number of images and save them to an NPZ
-    print('Sampling %d images from class %d...' % (n_samples, y_class))
+        print('Sampling %d images from class %d...'
+            % (n_samples, y_class))
+    else:
+        # Sampling a number of images and save them to an NPZ
+        batches_per_class = n_samples/(n_classes*G_batch_size)
+
+        print('Sampling %d images from each class (%d batches per class)...'
+            % (n_samples, batches_per_class))
 
     x, y = [], []
-    for i in trange(int(np.ceil(n_samples / float(G_batch_size)))):
+    batch_count = 0
+    k = 0
+    for i in trange(n_samples / G_batch_size):
         with torch.no_grad():
-            images, labels = sample()
-        x += [np.uint8(255 * (images.cpu().numpy() + 1) / 2.)]
-        y += [labels.cpu().numpy()]
+            if y_class is not None:
+                if batch_count == batches_per_class:
+                    batch_count = 0
+                    k += 1
+                else:
+                    batch_count += 1
+                y_ = utils.make_y(G_batch_size, k)
+
+            images, labels = utils.sample_cond(G, z_, y_)
+
+        # Fetching to CPU
+        images = images.cpu().numpy()
+        labels = labels.cpu().numpy()
+
+        # Normalizing for display (optionally)
+        if torch_format:
+            x += [images]
+        else:
+            x += [np.uint8(255 * (images + 1) / 2.)]
+        y += [labels]
+
     x = np.concatenate(x, 0)[:n_samples]
     y = np.concatenate(y, 0)[:n_samples]
 
@@ -67,7 +97,13 @@ def main():
                         help='Model name to use (with weights in ./weights/model_name')
     parser.add_argument('--class', metavar='class', type=int,
                         nargs=1,
-                        help='Class to sample from (in [O,k] for k+1 classes)')
+                        default=[None],
+                        help='Class to sample from (in [O,k-1] for k classes, '
+                             'default: sample [num_samples/k] for all classes.)')
+    parser.add_argument('--torch_format',
+                        action='store_true',
+                        help='Save sample archive using the torch format for samples'
+                             '(default: False)')     
     args = vars(parser.parse_args())
 
     # Updating config object
@@ -76,9 +112,12 @@ def main():
     ofile = args['ofile'][0]
     y_class = args['class'][0]
 
+    # Toggles:
+    torch_format = args['torch_format']
+
     utils.update_config(config)
 
-    run(config, num_samples, model_name, ofile, y_class)
+    run(config, num_samples, model_name, ofile, y_class, torch_format)
 
 
 if __name__ == '__main__':
