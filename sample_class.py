@@ -43,17 +43,13 @@ def run(config, n_samples, model_name,
             % (n_samples, batches_per_class))
 
     x, y = [], []
-    batch_count = 0
     k = 0
-    for i in trange(int(n_samples / G_batch_size)):
+    for b in trange(1, int(n_samples / G_batch_size)+1):
         with torch.no_grad():
             if y_class is None:
-                if batch_count == batches_per_class:
-                    batch_count = 0
-                    k += 1
-                else:
-                    batch_count += 1
                 y_ = utils.make_y(G_batch_size, k)
+                if b % batches_per_class == 0:
+                    k += 1
 
             images, labels = utils.sample_cond(G, z_, y_)
 
