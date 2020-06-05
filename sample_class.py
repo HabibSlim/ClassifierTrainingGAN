@@ -45,7 +45,7 @@ def run(config, n_samples, model_name,
     x, y = [], []
     batch_count = 0
     k = 0
-    for i in trange(n_samples / G_batch_size):
+    for i in trange(int(n_samples / G_batch_size)):
         with torch.no_grad():
             if y_class is None:
                 if batch_count == batches_per_class:
