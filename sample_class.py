@@ -29,7 +29,7 @@ def run(config, n_samples, model_name,
 
     n_classes = config['n_classes']
 
-    if y_class is None:
+    if y_class is not None:
         # Preparing fixed y tensors
         y_ = utils.make_y(G_batch_size, y_class)
 
@@ -47,7 +47,7 @@ def run(config, n_samples, model_name,
     k = 0
     for i in trange(n_samples / G_batch_size):
         with torch.no_grad():
-            if y_class is not None:
+            if y_class is None:
                 if batch_count == batches_per_class:
                     batch_count = 0
                     k += 1
