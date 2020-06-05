@@ -16,6 +16,7 @@ def run(config, n_samples, model_name,
         ofile,  y_class,   torch_format):
 
     # Adjusting batch size for convenience
+    G_batch_size = config['G_batch_size']
     if n_samples % G_batch_size != 0:
         print('Defaulting to a batch size of %d.' % 50)
         G_batch_size = 50
