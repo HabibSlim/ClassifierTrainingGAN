@@ -39,7 +39,7 @@ def run(config, n_samples, model_name,
         # Sampling a number of images and save them to an NPZ
         batches_per_class = n_samples/(n_classes*G_batch_size)
 
-        print('Sampling %d images from each class (%d batches per class)...'
+        print('Sampling %d images from all classes (%d batches per class)...'
             % (n_samples, batches_per_class))
 
     x, y = [], []
