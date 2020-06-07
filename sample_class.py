@@ -3,55 +3,47 @@ Loads a pretrained model,
 generate samples from a given class
 """
 import argparse
-import functools
 import numpy as np
 from tqdm import trange
-import torch
 
 import utils
 import params
+from generator import GeneratorWrapper
 
 
 def run(config, n_samples, model_name,
-        ofile,  y_class,   torch_format):
+        ofile,  y_class,   torch_format,
+        multi_gans, trunc_norm):
 
     # Adjusting batch size for convenience
-    G_batch_size = config['batch_size']
-    if n_samples % G_batch_size != 0:
+    if n_samples % config['batch_size'] != 0:
         print('Defaulting to a batch size of %d.' % 50)
-        G_batch_size = 50
+        config['batch_size'] = 50
 
     # Initializing generator from configuration
-    G = utils.initialize(config, model_name)
-    z_ = utils.prepare_z(G_batch_size, G.dim_z,
-                         device='cuda', fp16=config['G_fp16'],
-                         z_var=config['z_var'])
+    generator = GeneratorWrapper(config, model_name, trunc_norm, multi_gans)
+    sample_fn = generator.gen_batch_cond
 
     n_classes = config['n_classes']
 
     if y_class is not None:
-        # Preparing fixed y tensors
-        y_ = utils.make_y(G_batch_size, y_class)
-
         print('Sampling %d images from class %d...'
             % (n_samples, y_class))
     else:
         # Sampling a number of images and save them to an NPZ
-        batches_per_class = n_samples/(n_classes*G_batch_size)
+        batches_per_class = n_samples/(n_classes*config['batch_size'])
 
-        print('Sampling %d images from all classes (%d batches per class)...'
-            % (n_samples, batches_per_class))
+        print('Sampling %d images from each class (%d batches per class)...'
+            % (n_samples/n_classes, batches_per_class))
 
     x, y = [], []
     k = 0
-    for b in trange(1, int(n_samples / G_batch_size)+1):
-        with torch.no_grad():
-            if y_class is None:
-                y_ = utils.make_y(G_batch_size, k)
-                if b % batches_per_class == 0:
-                    k += 1
+    for b in trange(1, int(n_samples / config['batch_size'])+1):
+        if y_class is None:
+            if b % batches_per_class == 0:
+                k += 1
 
-            images, labels = utils.sample_cond(G, z_, y_)
+        images, labels = sample_fn(k)
 
         # Fetching to CPU
         images = images.cpu().numpy()
@@ -100,21 +92,41 @@ def main():
     parser.add_argument('--torch_format',
                         action='store_true',
                         help='Save sample archive using the torch format for samples'
-                             '(default: False)')     
+                             '(default: False)')
+    parser.add_argument('--multi_gans', metavar='multi_gans', type=int,
+                        nargs=1,
+                        default=[None],
+                        help='Sample using multiple GANs '
+                             '(default: %(default)s)')
+    parser.add_argument('--truncate', metavar='truncate', type=float,
+                        nargs=1,
+                        default=[None],
+                        help='Sample latent z from a truncated normal '
+                             '(default: no truncation).')
     args = vars(parser.parse_args())
 
-    # Updating config object
+    # Values:
     num_samples = args['num_samples'][0]
-    model_name = args['model'][0]
-    ofile = args['ofile'][0]
-    y_class = args['class'][0]
+    model_name  = args['model'][0]
+    ofile       = args['ofile'][0]
+    y_class     = args['class'][0]
+    multi_gans  = args['multi_gans'][0]
+    trunc_norm  = args['truncate'][0]
 
     # Toggles:
     torch_format = args['torch_format']
 
+    # Updating config object
     utils.update_config(config)
 
-    run(config, num_samples, model_name, ofile, y_class, torch_format)
+    run(config,
+        num_samples,
+        model_name,
+        ofile,
+        y_class,
+        torch_format,
+        multi_gans,
+        trunc_norm)
 
 
 if __name__ == '__main__':
