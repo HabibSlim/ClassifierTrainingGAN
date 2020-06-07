@@ -19,6 +19,7 @@ def run(config, n_samples, model_name,
     if n_samples % config['batch_size'] != 0:
         print('Defaulting to a batch size of %d.' % 50)
         config['batch_size'] = 50
+        config['batch_size'] = config['G_batch_size']
 
     # Initializing generator from configuration
     generator = GeneratorWrapper(config, model_name, trunc_norm, multi_gans)

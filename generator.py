@@ -7,7 +7,6 @@ import random
 
 class GeneratorWrapper:
     def __init__(self, config, model_name, thr=None, multi_gans=None):
-
         # Updating settings
         G_batch_size = config['G_batch_size']
         n_classes    = config['n_classes']
