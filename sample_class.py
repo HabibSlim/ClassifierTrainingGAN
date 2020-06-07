@@ -27,7 +27,10 @@ def run(config, n_samples, model_name,
 
     n_classes = config['n_classes']
 
+    k = 0
     if y_class is not None:
+        k = y_class
+
         print('Sampling %d images from class %d...'
             % (n_samples, y_class))
     else:
@@ -38,12 +41,7 @@ def run(config, n_samples, model_name,
             % (n_samples/n_classes, batches_per_class))
 
     x, y = [], []
-    k = 0
     for b in trange(1, int(n_samples / config['batch_size'])+1):
-        if y_class is None:
-            if b % batches_per_class == 0:
-                k += 1
-
         images, labels = sample_fn(k)
 
         # Fetching to CPU
@@ -56,6 +54,10 @@ def run(config, n_samples, model_name,
         else:
             x += [np.uint8(255 * (images + 1) / 2.)]
         y += [labels]
+
+        # Updating current class
+        if y_class is None and b % batches_per_class == 0:
+            k += 1
 
     x = np.concatenate(x, 0)[:n_samples]
     y = np.concatenate(y, 0)[:n_samples]
