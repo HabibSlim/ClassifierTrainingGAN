@@ -6,7 +6,7 @@ import random
 
 
 class GeneratorWrapper:
-    def __init__(self, config, model_name, thr=None, multi_gans=None):
+    def __init__(self, config, model_name, thr=None, multi_gans=None, gan_weights=None):
         # Updating settings
         G_batch_size = config['G_batch_size']
         n_classes    = config['n_classes']
@@ -20,6 +20,7 @@ class GeneratorWrapper:
             self.G = [utils.initialize(config, model_name + "_%d" % k)
                       for k in range(multi_gans)]
         self.multi_gans = multi_gans
+        self.gan_weights = gan_weights
 
         # Preparing sampling functions
         self.z_, self.y_ = utils.prepare_z_y(G_batch_size, config['dim_z'],
@@ -32,22 +33,20 @@ class GeneratorWrapper:
         # Preparing fixed y tensors
         self.y_fixed = {y: utils.make_y(G_batch_size, y) for y in range(n_classes)}
 
+    def get_g(self):
+        """Selecting a generator at random"""
+        if self.multi_gans is None:
+            return self.G
+        elif self.gan_weights is not None:
+            return random.choices(self.G, self.gan_weights)
+        else:
+            return random.choice(self.G)
+
     def gen_batch(self):
         """Generate a batch of random samples using G"""
-        if self.multi_gans is None:
-            return utils.sample(self.G, self.z_, self.y_)
-        else:
-            # Selecting a generator at random
-            g = random.choice(self.G)
-            return utils.sample(g, self.z_, self.y_)
+        return utils.sample(self.get_g(), self.z_, self.y_)
 
     def gen_batch_cond(self, class_y):
         """Generate a batch of samples of class y using G"""
         class_tensor = self.y_fixed[class_y]
-
-        if self.multi_gans is None:
-            return utils.sample_cond(self.G, self.z_, class_tensor)
-        else:
-            # Selecting a generator at random
-            g = random.choice(self.G)
-            return utils.sample_cond(g, self.z_, class_tensor)
+        return utils.sample_cond(self.get_g(), self.z_, class_tensor)

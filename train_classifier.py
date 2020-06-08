@@ -29,13 +29,17 @@ CHECK_BATCH = True
 
 def run(config,     num_batches,      batch_size,
         model_name, class_model_name, ofile,
-        threshold,  num_workers,      epochs,    multi_gans,
-        trunc_norm, fixed_dset,       transform, filter_samples):
+        threshold,  num_workers,      epochs,
+        multi_gans, gan_weights,      trunc_norm,
+        fixed_dset, transform,        filter_samples):
 
     # Instanciating generator
     config['G_batch_size'] = batch_size
-    generator = GeneratorWrapper(config, model_name, trunc_norm, multi_gans)
+
+    generator = GeneratorWrapper(config, model_name, trunc_norm, multi_gans, gan_weights)
     generator_fn = generator.gen_batch
+    if gan_weights:
+        print('Using GAN weights (multi-GAN setting).')
 
     # Instanciating filtering classifier
     if filter_samples:
@@ -169,6 +173,8 @@ def main():
 
     # Parsing command line parameters
     parser = argparse.ArgumentParser(description='Parametrized sample generation from GAN weights.')
+
+    # -> Training parameters:
     parser.add_argument('--num_batches', metavar='nbatches', type=int,
                         nargs=1,
                         default=[1],
@@ -179,6 +185,13 @@ def main():
                         default=[64],
                         help='Size of each batch (same for generation/filtering/training, '
                              'default: %(default)s)')
+    parser.add_argument('--epochs', metavar='epochs', type=int,
+                        nargs=1,
+                        default=[10],
+                        help='Number of epochs to train the classifier for '
+                             '(default: %(default)s)')
+
+    # -> Input/Output:
     parser.add_argument('--model', metavar='model', type=str,
                         nargs=1,
                         help='Weights file to use for the GAN (of the form: ./weights/model_name.pth)')
@@ -191,6 +204,13 @@ def main():
                         default=["trained_net"],
                         help='Output file name '
                              '(default: %(default)s)')
+    parser.add_argument('--num_workers', metavar='num_workers', type=float,
+                        nargs=1,
+                        default=[1],
+                        help='Number of workers to use for the dataloader.'
+                             '(default: %(default)s)')
+
+    # -> Methods and parameters:
     parser.add_argument('--threshold', metavar='threshold', type=float,
                         nargs=1,
                         default=[0.9],
@@ -201,21 +221,6 @@ def main():
                         default=[None],
                         help='Sample latent z from a truncated normal '
                              '(default: no truncation).')
-    parser.add_argument('--num_workers', metavar='num_workers', type=float,
-                        nargs=1,
-                        default=[1],
-                        help='Number of workers to use for the dataloader.'
-                             '(default: %(default)s)')
-    parser.add_argument('--epochs', metavar='epochs', type=int,
-                        nargs=1,
-                        default=[10],
-                        help='Number of epochs to train the classifier for '
-                             '(default: %(default)s)')
-    parser.add_argument('--multi_gans', metavar='multi_gans', type=int,
-                        nargs=1,
-                        default=[None],
-                        help='Sample using multiple GANs '
-                             '(default: %(default)s)')
     parser.add_argument('--fixed_dset',
                         action='store_true',
                         help='Use a fixed generated dataset for training '
@@ -229,6 +234,18 @@ def main():
                         action='store_true',
                         help='Enable classifier-filtering of generated images '
                              '(default: False)')
+
+    # -> Multi-GANs stuff:
+    parser.add_argument('--multi_gans', metavar='multi_gans', type=int,
+                        nargs=1,
+                        default=[None],
+                        help='Sample using multiple GANs '
+                             '(default: %(default)s)')
+    parser.add_argument('--gan_weights', metavar='gan_weights', type=float,
+                        nargs='+',
+                        default=[None],
+                        help='Specify weights for each GAN '
+                             '(default: sample from each GAN with equiprobability)')
     args = vars(parser.parse_args())
 
     # Values:
@@ -240,8 +257,12 @@ def main():
     threshold   = args['threshold'][0]
     num_workers = args['num_workers'][0]
     epochs      = args['epochs'][0]
-    multi_gans  = args['multi_gans'][0]
     trunc_norm  = args['truncate'][0]
+    multi_gans  = args['multi_gans'][0]
+    gan_weights = args['gan_weights']
+
+    if gan_weights[0] is not None and multi_gans != len(gan_weights):
+        print('The list of GAN weights should specify weights for each GAN.')
 
     # Toggles:
     fixed_dset     = args['fixed_dset']
@@ -261,6 +282,7 @@ def main():
         num_workers,
         epochs,
         multi_gans,
+        gan_weights,
         trunc_norm,
         fixed_dset,
         transform,
