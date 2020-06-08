@@ -39,7 +39,7 @@ def run(config,     num_batches,      batch_size,
     generator = GeneratorWrapper(config, model_name, trunc_norm, multi_gans, gan_weights)
     generator_fn = generator.gen_batch
     if gan_weights:
-        print('Using GAN weights (multi-GAN setting).')
+        print('Using GAN weights (multi-GAN setting): ', str(gan_weights))
 
     # Instanciating filtering classifier
     if filter_samples:
