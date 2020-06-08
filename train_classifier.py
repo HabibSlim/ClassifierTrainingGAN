@@ -263,6 +263,8 @@ def main():
 
     if gan_weights[0] is not None and multi_gans != len(gan_weights):
         print('The list of GAN weights should specify weights for each GAN.')
+    else:
+        gan_weights = None
 
     # Toggles:
     fixed_dset     = args['fixed_dset']
