@@ -38,7 +38,7 @@ class GeneratorWrapper:
         if self.multi_gans is None:
             return self.G
         elif self.gan_weights is not None:
-            return random.choices(self.G, self.gan_weights)
+            return random.choices(self.G, self.gan_weights)[0]
         else:
             return random.choice(self.G)
 
