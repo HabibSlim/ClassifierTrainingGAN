@@ -11,9 +11,9 @@ import params
 from generator import GeneratorWrapper
 
 
-def run(config, n_samples, model_name,
-        ofile,  y_class,   torch_format,
-        multi_gans, trunc_norm):
+def run(config,    n_samples,  model_name,
+        ofile,     y_class,    torch_format,
+        transform, multi_gans, trunc_norm):
 
     # Adjusting batch size for convenience
     if n_samples % config['batch_size'] != 0:
@@ -40,13 +40,25 @@ def run(config, n_samples, model_name,
         print('Sampling %d images from each class (%d batches per class)...'
             % (n_samples/n_classes, batches_per_class))
 
+    if transform:
+        T = utils.load_transform()
+
     x, y = [], []
     for b in trange(1, int(n_samples / config['batch_size'])+1):
         images, labels = sample_fn(k)
 
         # Fetching to CPU
-        images = images.cpu().numpy()
-        labels = labels.cpu().numpy()
+        images = images.cpu()
+        labels = labels.cpu()
+
+        # Applying transformations
+        if transform:
+            for i,im in enumerate(images):
+                im = (im * 0.5 + 0.5).clamp_(0, 1)
+                images[i] = T(im)
+
+        images = images.numpy()
+        labels = labels.numpy()
 
         # Normalizing for display (optionally)
         if torch_format:
@@ -92,10 +104,6 @@ def main():
                         default=[None],
                         help='Class to sample from (in [O,k-1] for k classes, '
                              'default: sample [num_samples/k] for all classes.)')
-    parser.add_argument('--torch_format',
-                        action='store_true',
-                        help='Save sample archive using the torch format for samples'
-                             '(default: False)')
     parser.add_argument('--multi_gans', metavar='multi_gans', type=int,
                         nargs=1,
                         default=[None],
@@ -106,6 +114,15 @@ def main():
                         default=[None],
                         help='Sample latent z from a truncated normal '
                              '(default: no truncation).')
+
+    parser.add_argument('--torch_format',
+                        action='store_true',
+                        help='Save sample archive using the torch format for samples'
+                             '(default: False)')
+    parser.add_argument('--transform',
+                        action='store_true',
+                        help='Apply image transformations to generated images '
+                             '(default: False)')
     args = vars(parser.parse_args())
 
     # Values:
@@ -118,6 +135,7 @@ def main():
 
     # Toggles:
     torch_format = args['torch_format']
+    transform    = args['transform']
 
     # Updating config object
     utils.update_config(config)
@@ -128,6 +146,7 @@ def main():
         ofile,
         y_class,
         torch_format,
+        transform,
         multi_gans,
         trunc_norm)
 

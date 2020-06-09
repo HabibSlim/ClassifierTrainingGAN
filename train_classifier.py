@@ -20,10 +20,6 @@ from generator import GeneratorWrapper
 from filter_loader import FilteredLoader
 
 
-# Default normalization for CIFAR-10 samples
-norm_vals = ([0.5, 0.5, 0.5],  # mean
-             [0.5, 0.5, 0.5])  # std
-
 # Debugging generated batches
 CHECK_BATCH = True
 
@@ -60,8 +56,7 @@ def run(config,     num_batches,      batch_size,
                             threshold,
                             num_workers,
                             fixed_dset,
-                            transform,
-                            norm_vals)
+                            transform)
 
     print('Training using %d generated images per epoch'
           % loader.train_length())
@@ -77,7 +72,7 @@ def run(config,     num_batches,      batch_size,
     # Evaluating the model on the test set
     test_loader = utils.make_test_loader(config['dataset'],
                                          batch_size,
-                                         transforms.Normalize(*norm_vals))
+                                         transforms.Normalize(*utils.norm_vals))
 
     # Training the model
     t1 = utils.ctime()

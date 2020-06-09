@@ -5,7 +5,7 @@ import random
 import torch
 from torch.utils.data import DataLoader
 
-import torchvision.transforms as transforms
+import utils
 
 
 # Utility functions
@@ -28,8 +28,7 @@ class FilteredLoader(DataLoader):
                  threshold,
                  num_workers,
                  fixed_ds,
-                 transform,
-                 norm_vals):
+                 transform):
         """gen_fn:    conditional sample generator function
            cls_fn:    classifier function
            n_class:   number of classes to sample from (=10 if CIFAR-10)
@@ -40,7 +39,6 @@ class FilteredLoader(DataLoader):
                              memory afterwards)
            transform: true if transformations are to be applied to the 
                       generated images
-           norm_vals: normalization values (mean/std)
         """
         super().__init__(dataset=None,
                          batch_size=batch_size,
@@ -74,13 +72,7 @@ class FilteredLoader(DataLoader):
 
         # Setting up training data transformation
         if transform:
-            self.T = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomCrop(32, padding=4),
-                transforms.ToTensor(),
-                transforms.Normalize(*norm_vals),
-            ])
+            self.T = utils.load_transform()
         else:
             self.T = None
 

@@ -51,6 +51,10 @@ activation_dict = {'inplace_relu': nn.ReLU(inplace=True),
                    'relu':         nn.ReLU(inplace=False),
                    'ir':           nn.ReLU(inplace=True)}
 
+# Default normalization for CIFAR-10 samples
+norm_vals = ([0.5, 0.5, 0.5],  # mean
+             [0.5, 0.5, 0.5])  # std
+
 
 # Load a model's weights, optimizer, and the state_dict
 def load_weights(model_name, name_suffix=None, G_ema=None, strict=True):
@@ -64,6 +68,19 @@ def load_weights(model_name, name_suffix=None, G_ema=None, strict=True):
         G_ema.load_state_dict(
             torch.load('%s/%s.pth' % (root, join_strings('_', ['G_ema', name_suffix]))),
             strict=strict)
+
+
+# Loading image transformations
+def load_transform():
+    T = tforms.Compose([
+        tforms.ToPILImage(),
+        tforms.RandomHorizontalFlip(),
+        tforms.RandomCrop(32, padding=4),
+        tforms.ToTensor(),
+        tforms.Normalize(*norm_vals),
+    ])
+
+    return T
 
 
 # Loading the test set
