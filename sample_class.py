@@ -41,6 +41,7 @@ def run(config,    n_samples,  model_name,
             % (n_samples/n_classes, batches_per_class))
 
     if transform:
+        print('Using data transformations')
         T = utils.load_transform()
 
     x, y = [], []
