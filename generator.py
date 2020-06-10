@@ -42,7 +42,7 @@ class GeneratorWrapper:
         else:
             return random.choice(self.G)
 
-    def gen_batch(self, _):
+    def gen_batch(self, _=None):
         """Generate a batch of random samples using G"""
         return utils.sample(self.get_g(), self.z_, self.y_)
 
