@@ -83,7 +83,7 @@ echo " "
 
 echo "hard_norm_mu_multi_n2..."
 CUDA_VISIBLE_DEVICES=0 python sample_class.py \
---model hard_norm_mu \
+--model 'hard_norm_mu/gan_multi' \
 --ofile hard_norm_mu_multi_n2 \
 --num_samples 5000 \
 --multi_gans 2
@@ -93,7 +93,7 @@ echo " "
 
 echo "hard_norm_std_multi_n2..."
 CUDA_VISIBLE_DEVICES=0 python sample_class.py \
---model hard_norm_std \
+--model 'hard_norm_std/gan_multi' \
 --ofile hard_norm_std_multi_n2 \
 --num_samples 5000 \
 --multi_gans 2
@@ -103,7 +103,7 @@ echo " "
 
 echo "soft_norm_multi_n2..."
 CUDA_VISIBLE_DEVICES=0 python sample_class.py \
---model soft_norm \
+--model 'soft_norm/gan_multi' \
 --ofile soft_norm_multi_n2 \
 --num_samples 5000 \
 --multi_gans 2
@@ -113,7 +113,7 @@ echo " "
 
 echo "gan_multi_n2..."
 CUDA_VISIBLE_DEVICES=0 python sample_class.py \
---model multi_random \
+--model 'multi_random/gan_multi' \
 --ofile multi_random_n2 \
 --num_samples 5000 \
 --multi_gans 2
@@ -123,7 +123,7 @@ echo " "
 
 echo "gan_multi_n3..."
 CUDA_VISIBLE_DEVICES=0 python sample_class.py \
---model multi_random \
+--model 'multi_random/gan_multi' \
 --ofile multi_random_n3 \
 --num_samples 5000 \
 --multi_gans 3
@@ -133,7 +133,7 @@ echo " "
 
 echo "gan_multi_n4..."
 CUDA_VISIBLE_DEVICES=0 python sample_class.py \
---model multi_random \
+--model 'multi_random/gan_multi' \
 --ofile multi_random_n4 \
 --num_samples 5000 \
 --multi_gans 4
@@ -143,10 +143,9 @@ echo " "
 
 echo "gan_multi_n5..."
 CUDA_VISIBLE_DEVICES=0 python sample_class.py \
---model multi_random \
+--model 'multi_random/gan_multi' \
 --ofile multi_random_n5 \
 --num_samples 5000 \
 --multi_gans 5
 echo "Done."
 echo " "
-
