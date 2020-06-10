@@ -13,7 +13,8 @@ from generator import GeneratorWrapper
 
 def run(config,    n_samples,  model_name,
         ofile,     y_class,    torch_format,
-        transform, multi_gans, trunc_norm):
+        transform, multi_gans, trunc_norm,
+        random_k):
 
     # Adjusting batch size for convenience
     if n_samples % config['batch_size'] != 0:
@@ -23,7 +24,12 @@ def run(config,    n_samples,  model_name,
 
     # Initializing generator from configuration
     generator = GeneratorWrapper(config, model_name, trunc_norm, multi_gans)
-    sample_fn = generator.gen_batch_cond
+
+    if random_k:
+        print('Sampling classes randomly...')
+        sample_fn = generator.gen_batch
+    else:
+        sample_fn = generator.gen_batch_cond
 
     n_classes = config['n_classes']
 
@@ -124,6 +130,10 @@ def main():
                         action='store_true',
                         help='Apply image transformations to generated images '
                              '(default: False)')
+    parser.add_argument('--random_k',
+                        action='store_true',
+                        help='Sample classes randomly '
+                             '(default: False)')
     args = vars(parser.parse_args())
 
     # Values:
@@ -137,6 +147,7 @@ def main():
     # Toggles:
     torch_format = args['torch_format']
     transform    = args['transform']
+    random_k     = args['random_k']
 
     # Updating config object
     utils.update_config(config)
@@ -149,7 +160,8 @@ def main():
         torch_format,
         transform,
         multi_gans,
-        trunc_norm)
+        trunc_norm,
+        random_k)
 
 
 if __name__ == '__main__':
