@@ -72,7 +72,7 @@ Some bash scripts are already in the folder `./scripts/`, to run classifier trai
 
 # References
 1. [Brock et al., 2018] Andrew Brock, Jeff Donahue, and
-Karen Simonyan. Large scale gan training for high fidelity
+Karen Simonyan. Large scale GAN training for high fidelity
 natural image synthesis, 2018.
 
 2. [Pham et al., 2019] Thanh Dat Pham, Anuvabh Dutt, Denis Pellerin, and Georges Quénot. Classifier Training
