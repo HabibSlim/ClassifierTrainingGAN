@@ -1,31 +1,68 @@
-Generating from BigGAN, classifier filtering and training.
+<h1 align="center">
+    ClassifierTrainingGAN
+</h1>
+<p align="center">
+<b>Training a ResNet classifier using pre-trained BigGAN models</b>
+</p>
 
 # Usage
 ## Training a classifier
 
 Training a classifier requires:
-- pre-trained classifier weights in `classifier/weights/model_name.pth`
-- pre-trained BigGAN weights in `weights/weights_folder_name/`
+- pre-trained classifier weights in: `./classifier/weights/model_name.pth`
+- pre-trained BigGAN weights in: `./weights/weights_folder_name/`
 
 To run the script:
 
 `python3 train_classifier.py [options]`
 
-Positional arguments are as follows:
+Parameters are as follows:
 
-- `num_batches`: number of batches per class to train the classifier with
-- `batch_size`: size of each batch (same for generation/filtering/training)
-- `model`: weights file to use for the GAN
-- `classifier_model`: weights file to use for the filtering classifier
-- `ofile`: output file name
-- `threshold`: threshold probability for filtering using the clasifier
-- `num_workers`: number of workers for the dataloader
-- `epochs`: number of epochs for the full training session
+**Input/Output**
+- `model`: Weights file to use for the GAN (of the form: `./weights/model_name/G_ema.pth` if single GAN, `./weights/model_name/gan_multi_n/G_ema.pth` if `n` GANs are used)
+- `classifier_model`: Weights file to use for the filtering classifier (of the form: ./classifiers/weights/class_model_name.pth)
+- `ofile`: Output file name (default: `trained_net`)
+
+**Training**
+- `batch_size`: Size of each batch (same for generation/filtering/training, default: 64)
+- `num_batches`: Number of batches per class to train the classifier with (default: 1)
+- `epochs`: Number of epochs to train the classifier for (default: 10)
+
+**Classifier filtering**
+- `filter_samples`: Enable classifier-filtering of generated images (default: `False`)
+- `threshold`: Threshold probability for classifier filtering (default: `0.9`)
+
+**Multi-GANs**
+- `multi_gans`: Sample using multiple GANs (default: `None`, integer value)
+- `gan_weights`: If using multi-GANs, specify weights for each GAN (default: sample from each GAN with equiprobability)
+
+**Other**
+- `truncate`: Sample latent z from a truncated normal (default: no truncation, float format).
+- `fixed_dset`: Use a fixed generated dataset for training (of size: `batch_size*num_batches*num_classes`, default: `False`)
+- `transform`: Apply image transformations to generated images (default: `False`)
+
 
 ## Sampling from GAN weights
 
-Two other scripts have been written to sample randomly (sample.py), and to generate samples conditioned by an input class (sample_class.py).
+To sample from GAN weights:
+
+`python3 sample.py [options]`
+
+Parameters are as follows:
+
+**Input/Output**
+- `model`: Same as above
+- `ofile`: Output file name (default: `trained_net`)
+- `torch_format`: Save NPZ images as float tensors instead of `uint8` (default: `False`)
+
+**Generation**
+- `num_samples`: Number of samples to generate (default: 10)
+- `class`: Class to sample from (in `[[0,K-1]]` for `K` classes, default: sample sequentially `num_samples/k` for all classes.)
+- `random_k`: Sample classes randomly (default: `False`)
+- `multi_gans`: Generate samples using multiple GANs (default: `None`, integer value)
+
+**Other**
+- `transform`, `truncate`: Same as above
 
 # Scripts
-
-Some bash scripts are already in the folder `./scripts/` to run some tests.
+Some bash scripts are already in the folder `./scripts/`, to run classifier training sessions with various parameters.
