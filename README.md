@@ -69,3 +69,12 @@ Parameters are as follows:
 
 # Scripts
 Some bash scripts are already in the folder `./scripts/`, to run classifier training sessions with various parameters.
+
+# References
+1. [Brock et al., 2018] Andrew Brock, Jeff Donahue, and
+Karen Simonyan. Large scale gan training for high fidelity
+natural image synthesis, 2018.
+
+2. [Pham et al., 2019] Thanh Dat Pham, Anuvabh Dutt, Denis Pellerin, and Georges Quénot. Classifier Training
+from a Generative Model. In CBMI 2019 - 17th International Conference on Content-Based Multimedia Indexing,
+Dublin, Ireland, September 2019.
