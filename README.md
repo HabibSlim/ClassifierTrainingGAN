@@ -5,8 +5,16 @@
 <b>Training a ResNet classifier using pre-trained BigGAN models</b>
 </p>
 
+<h1 align="center">
+    <img src="git_pic.png">
+</h1>
+
 Using the base implementation of BigGAN provided by Andrew Brock.
 Achieves ~88.5% accuracy on `CIFAR-10` (when using data transformations and classifier filtering), versus ~94.3 when trained using real data for the same number of optimization steps. With five GANs, reaches ~91% accuracy.
+
+# Report
+
+Click [HERE](report.pdf) to download the final research report.
 
 # Usage
 ## Training a classifier
