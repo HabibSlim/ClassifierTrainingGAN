@@ -1,6 +1,6 @@
 <div align="center">
 <h1 align="center">
-    ClassifierTrainingGAN
+    Boosting Generative Networks for Incremental Learning
 </h1>
 <p align="center">
 <b>Training a ResNet classifier using pre-trained BigGAN models</b>
