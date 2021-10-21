@@ -4,9 +4,13 @@
 <p align="center">
 <b>Training a ResNet classifier using pre-trained BigGAN models</b>
 </p>
+[![Python](https://img.shields.io/badge/Python-3.7.0-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/Pytorch-1.0.1-red?logo=pytorch&logoColor=white)](https://pytorch.org/)
+
+\[[Report](report.pdf)\]
 
 <h1 align="center">
-    <img src="git_pic.png">
+    <img src="git_pic.png" width=700px>
 </h1>
 
 Using the base implementation of BigGAN provided by Andrew Brock.
