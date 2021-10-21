@@ -23,8 +23,8 @@ Achieves ~88.5% accuracy on `CIFAR-10` (when using data transformations and clas
 
 Click [HERE](report.pdf) to download the final research report.
 
-# Usage
-## Training a classifier
+## Usage
+### Training a classifier
 
 Training a classifier requires:
 - pre-trained classifier weights in: `./classifier/weights/model_name.pth`
@@ -60,7 +60,7 @@ Parameters are as follows:
 - `transform`: Apply image transformations to generated images (default: `False`)
 
 
-## Sampling from GAN weights
+### Sampling from GAN weights
 
 To sample from GAN weights:
 
@@ -82,10 +82,10 @@ Parameters are as follows:
 **Other**
 - `transform`, `truncate`: Same as above
 
-# Scripts
+## Scripts
 Some bash scripts are already in the folder `./scripts/`, to run classifier training sessions with various parameters.
 
-# References
+## References
 1. [Brock et al., 2018] Andrew Brock, Jeff Donahue, and
 Karen Simonyan. Large scale GAN training for high fidelity
 natural image synthesis, 2018.
