@@ -1,9 +1,11 @@
+<div align="center">
 <h1 align="center">
     ClassifierTrainingGAN
 </h1>
 <p align="center">
 <b>Training a ResNet classifier using pre-trained BigGAN models</b>
 </p>
+
 [![Python](https://img.shields.io/badge/Python-3.7.0-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/Pytorch-1.0.1-red?logo=pytorch&logoColor=white)](https://pytorch.org/)
 
@@ -12,6 +14,7 @@
 <h1 align="center">
     <img src="git_pic.png" width=700px>
 </h1>
+</div>
 
 Using the base implementation of BigGAN provided by Andrew Brock.
 Achieves ~88.5% accuracy on `CIFAR-10` (when using data transformations and classifier filtering), versus ~94.3 when trained using real data for the same number of optimization steps. With five GANs, reaches ~91% accuracy.
